@@ -18,6 +18,16 @@ app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origin_list, allo
 def ensure_vehicle(vehicle_id: str) -> None:
     if not vehicle_exists(vehicle_id):
         raise HTTPException(status_code=404, detail=f"Vehicle '{vehicle_id}' was not found")
+    
+@app.get("/")
+def root():
+    return {
+        "name": "VehiSense IQ API",
+        "status": "Running",
+        "version": "1.0.0",
+        "documentation": "/docs",
+        "health": "/health"
+    }
 
 @app.get("/health")
 def health():
