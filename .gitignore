@@ -1,0 +1,25 @@
+﻿node_modules
+dist
+.env
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+.coverage
+.DS_Store
+postgres_data
+node_modules/
+dist/
+.env
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+.DS_Store
+postgres_data/
+
+# Cache folders
+.npm-cache/
+.pip-cache/
+.tmp/
