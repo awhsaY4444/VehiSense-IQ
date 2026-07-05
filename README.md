@@ -228,6 +228,24 @@ Only the telemetry source changes; the AI decision pipeline remains the same.
 
 ---
 
+## 📚 Datasets Used
+
+### AI4I 2020 Predictive Maintenance Dataset
+Used to train the XGBoost classifier for failure prediction and health assessment.
+
+### NASA CMAPSS Turbofan Engine Dataset
+Used to train the XGBoost regressor for Remaining Useful Life (RUL) prediction.
+
+---
+
+## ⚠️ Prototype Note
+
+This prototype uses realistic synthetic fleet records together with simulated telemetry to demonstrate the complete AI decision pipeline. The machine learning models, SHAP explainability, and inference pipeline are fully functional.
+
+For production deployment, the telemetry simulation layer can be replaced with real-time data from vehicle OBD-II ports, CAN Bus, ECU, GPS, and IoT sensors without changing the core AI architecture.
+
+---
+
 ## 📜 License
 
 This project was developed as part of a hackathon prototype and is intended for educational and research purposes.
