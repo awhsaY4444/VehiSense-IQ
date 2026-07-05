@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import asyncio
 from fastapi import FastAPI, HTTPException, Query
@@ -13,7 +13,7 @@ from app.services.report_service import build_report
 
 app = FastAPI(title=settings.app_name, version="1.0.0", description="Edge AI-powered fleet maintenance decision intelligence APIs.")
 
-app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origin_list, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origin_list, allow_origin_regex=settings.cors_origin_regex, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 def ensure_vehicle(vehicle_id: str) -> None:
     if not vehicle_exists(vehicle_id):
@@ -132,6 +132,4 @@ def report(vehicle_id: str):
     pdf = build_report(vehicle_id)
     headers = {"Content-Disposition": f'attachment; filename="{vehicle_id}-vehisense-report.pdf"'}
     return Response(content=pdf, media_type="application/pdf", headers=headers)
-
-
 

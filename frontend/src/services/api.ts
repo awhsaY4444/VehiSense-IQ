@@ -1,16 +1,21 @@
 import { fleet, recommendations, shapFeatures } from "@/data/fleet";
 import type { Alert, DigitalTwinVehicle, EdgeInference, ExplanationResponse, FleetAnalytics, ForecastPoint, MaintenanceEvent, ModelMonitoring, Recommendation, ShapFeature, StreamPayload, TelemetrySnapshot, TimelineEvent, Vehicle } from "@/types";
 
-export const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+const configuredApiUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
+export const API_URL = configuredApiUrl || (import.meta.env.DEV ? "http://localhost:8000" : "");
 
 type PredictionResponse = { vehicle_id: string; failure_probability: number; failure_class: string; confidence: number; predicted_component: string };
 
 async function request<T>(path: string, fallback: T, init?: RequestInit): Promise<T> {
   try {
+    if (!API_URL) throw new Error("VITE_API_URL is required for production builds");
     const response = await fetch(`${API_URL}${path}`, { headers: { "Content-Type": "application/json" }, ...init });
     if (!response.ok) throw new Error(`API ${response.status}`);
     return (await response.json()) as T;
-  } catch { return fallback; }
+  } catch (error) {
+    if (import.meta.env.DEV) return fallback;
+    throw error;
+  }
 }
 
 function buildAnalytics(rows: Vehicle[], recs: Recommendation[]): FleetAnalytics {
@@ -61,6 +66,7 @@ export const api = {
   monitoring: () => request<ModelMonitoring>("/monitoring", emptyMonitoring),
   demoTick: () => request<StreamPayload>("/demo/tick", { fleet, telemetry: [], alerts: [], analytics: fallbackAnalytics, monitoring: emptyMonitoring }, { method: "POST" }),
   edgeInference: (payload: Record<string, number | string>) => request<EdgeInference>("/edge-inference", { vehicle_id: String(payload.vehicle_id), rpm: Number(payload.rotational_speed_rpm), temperature: Number(payload.process_temperature_k), torque: Number(payload.torque_nm), vibration: Number(payload.engine_vibration), inference_time_ms: 18, confidence: fallbackAnalytics.average_ai_confidence, prediction: "Normal", failure_probability: 0.16 }, { method: "POST", body: JSON.stringify(payload) }),
-  streamUrl: () => `${API_URL}/stream`,
-  report: async (vehicleId: string) => { const response = await fetch(`${API_URL}/report?vehicle_id=${vehicleId}`); if (!response.ok) throw new Error("Report service unavailable"); return response.blob(); },
+  streamUrl: () => { if (!API_URL) throw new Error("VITE_API_URL is required for production builds"); return `${API_URL}/stream`; },
+  report: async (vehicleId: string) => { if (!API_URL) throw new Error("VITE_API_URL is required for production builds"); const response = await fetch(`${API_URL}/report?vehicle_id=${vehicleId}`); if (!response.ok) throw new Error("Report service unavailable"); return response.blob(); },
 };
+

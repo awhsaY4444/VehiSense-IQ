@@ -249,3 +249,148 @@ For production deployment, the telemetry simulation layer can be replaced with r
 ## 📜 License
 
 This project was developed as part of a hackathon prototype and is intended for educational and research purposes.
+
+---
+
+## Production Deployment: Render + Vercel
+
+This project is deployment-ready for the following hosting split:
+
+- Frontend: React + Vite on Vercel
+- Backend: FastAPI on Render using Docker
+
+### Backend Deployment on Render
+
+Create a new Render Web Service from this repository.
+
+Recommended Render settings:
+
+```text
+Service type: Web Service
+Environment: Docker
+Root directory: backend
+Dockerfile path: backend/Dockerfile
+Health check path: /health
+```
+
+The backend Dockerfile starts FastAPI with Render's `PORT` environment variable:
+
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
+```
+
+Required Render environment variables:
+
+```text
+APP_ENV=production
+CORS_ORIGINS=https://<your-vercel-app>.vercel.app
+```
+
+Optional Render environment variables:
+
+```text
+DATABASE_URL=<render-postgres-external-or-internal-url>
+CORS_ORIGIN_REGEX=https://.*\.vercel\.app
+```
+
+Notes:
+
+- Do not set `CORS_ORIGINS=*` in production. The backend rejects wildcard CORS outside development.
+- If `DATABASE_URL` is not available, the app still starts and runs with in-memory/demo persistence disabled.
+- Trained model files are included from `backend/models` during the Docker build.
+
+Expected backend URL:
+
+```text
+https://vehisense-iq-api.onrender.com
+```
+
+Verify backend after deploy:
+
+```text
+https://vehisense-iq-api.onrender.com/health
+```
+
+Expected response:
+
+```json
+{"status":"ok","service":"VehiSense IQ API"}
+```
+
+### Frontend Deployment on Vercel
+
+Create a Vercel project from this repository.
+
+Recommended Vercel settings:
+
+```text
+Root directory: frontend
+Framework preset: Vite
+Build command: npm run build
+Output directory: dist
+```
+
+Required Vercel environment variable:
+
+```text
+VITE_API_URL=https://vehisense-iq-api.onrender.com
+```
+
+Local development may omit `VITE_API_URL`; the frontend then uses `http://localhost:8000` only in Vite dev mode. Production builds must provide `VITE_API_URL`.
+
+Expected frontend URL:
+
+```text
+https://vehisense-iq.vercel.app
+```
+
+### Deployment Order
+
+1. Deploy the backend on Render.
+2. Confirm `/health` works.
+3. Add the Vercel URL to Render `CORS_ORIGINS`.
+4. Deploy the frontend on Vercel with `VITE_API_URL` set to the Render backend URL.
+5. Open the Vercel app and verify dashboard API data loads.
+
+### Production Smoke Test Checklist
+
+Verify these endpoints on Render:
+
+```text
+/health
+/fleet
+/predict
+/rul
+/health-score
+/shap
+/explanation
+/recommendation
+/priority
+/telemetry
+/alerts
+/digital-twin
+/timeline
+/forecast
+/analytics
+/monitoring
+/edge-inference
+/report
+```
+
+Verify these frontend pages on Vercel:
+
+```text
+/login
+/
+/fleet
+/fleet/<vehicle-id>
+/explainable-ai
+/priority
+/recommendations
+/simulator
+/reports
+/architecture
+/digital-twin
+/monitoring
+/settings
+```
